@@ -45,6 +45,10 @@ class PaymobPayment extends BaseController implements PaymentInterface
                 "api_key" => $this->paymob_api_key
             ])->json();
 
+        if (isset($request_new_token['token']) == false){
+            throw new \Exception("incorrect credentials");
+        }
+
         $get_order = Http::withHeaders(['content-type' => 'application/json'])
             ->post('https://accept.paymobsolutions.com/api/ecommerce/orders', [
                 "auth_token" => $request_new_token['token'],
@@ -77,6 +81,11 @@ class PaymobPayment extends BaseController implements PaymentInterface
                 "currency" => $this->currency,
                 "integration_id" => $this->paymob_integration_id
             ])->json();
+
+        if (isset($get_url_token['token']) == false){
+            $firstKey = array_key_first($get_url_token);
+            throw new \Exception("$firstKey : ". $get_url_token[$firstKey][0]);
+        }
 
         return [
             'payment_id'=>$get_order['id'],
@@ -146,7 +155,6 @@ class PaymobPayment extends BaseController implements PaymentInterface
         $refund_process = Http::withHeaders(['content-type' => 'application/json'])
             ->post('https://accept.paymob.com/api/acceptance/void_refund/refund',['auth_token'=>$request_new_token['token'],'transaction_id'=>$transaction_id,'amount_cents'=>$amount])->json();
 
-        dd($refund_process);
         return [
             'transaction_id'=>$transaction_id,
             'amount'=>$amount,
